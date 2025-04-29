@@ -224,7 +224,7 @@ static int st7735r_probe(struct spi_device *spi)
 		return ret;
 
 	if (cfg->write_only)
-		dbi->read_commands = NULL;
+		mipi_dbi_set_write_only(dbi);
 
 	dbidev->left_offset = cfg->left_offset;
 	dbidev->top_offset = cfg->top_offset;

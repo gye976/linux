@@ -347,7 +347,7 @@ static int st7586_probe(struct spi_device *spi)
 		return ret;
 
 	/* Cannot read from this controller via SPI */
-	dbi->read_commands = NULL;
+	mipi_dbi_set_write_only(dbi);
 
 	ret = mipi_dbi_dev_init_with_formats(dbidev, &st7586_pipe_funcs,
 					     st7586_formats, ARRAY_SIZE(st7586_formats),

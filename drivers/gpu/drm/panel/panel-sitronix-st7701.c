@@ -1250,7 +1250,8 @@ static int st7701_spi_probe(struct spi_device *spi)
 	err = mipi_dbi_spi_init(spi, &st7701->dbi, dc);
 	if (err)
 		return dev_err_probe(&spi->dev, err, "Failed to init MIPI DBI\n");
-	st7701->dbi.read_commands = NULL;
+
+	mipi_dbi_set_write_only(&st7701->dbi);
 
 	return 0;
 }

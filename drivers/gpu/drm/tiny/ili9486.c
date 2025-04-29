@@ -233,7 +233,7 @@ static int ili9486_probe(struct spi_device *spi)
 		return ret;
 
 	dbi->command = waveshare_command;
-	dbi->read_commands = NULL;
+	mipi_dbi_set_write_only(dbi);
 
 	ret = mipi_dbi_dev_init(dbidev, &waveshare_pipe_funcs,
 				&waveshare_mode, rotation);

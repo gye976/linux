@@ -799,7 +799,7 @@ static int nv3052c_probe(struct spi_device *spi)
 	if (err)
 		return dev_err_probe(dev, err, "MIPI DBI init failed\n");
 
-	priv->dbi.read_commands = NULL;
+	mipi_dbi_set_write_only(&priv->dbi);
 
 	spi_set_drvdata(spi, priv);
 
