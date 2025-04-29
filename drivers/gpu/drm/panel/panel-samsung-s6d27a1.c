@@ -36,7 +36,6 @@ static const u8 s6d27a1_dbi_read_commands[] = {
 	S6D27A1_READID1,
 	S6D27A1_READID2,
 	S6D27A1_READID3,
-	0, /* sentinel */
 };
 
 struct s6d27a1 {
@@ -275,7 +274,8 @@ static int s6d27a1_probe(struct spi_device *spi)
 	if (ret)
 		return dev_err_probe(dev, ret, "MIPI DBI init failed\n");
 
-	ctx->dbi.read_commands = s6d27a1_dbi_read_commands;
+	mipi_dbi_add_read_cmds(&ctx->dbi, s6d27a1_dbi_read_commands, 
+				ARRAY_SIZE(s6d27a1_dbi_read_commands));
 
 	drm_panel_init(&ctx->panel, dev, &s6d27a1_drm_funcs,
 		       DRM_MODE_CONNECTOR_DPI);

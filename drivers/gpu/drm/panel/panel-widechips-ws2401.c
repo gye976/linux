@@ -51,7 +51,6 @@ static const u8 ws2401_dbi_read_commands[] = {
 	WS2401_READ_ID1,
 	WS2401_READ_ID2,
 	WS2401_READ_ID3,
-	0, /* sentinel */
 };
 
 /**
@@ -373,7 +372,9 @@ static int ws2401_probe(struct spi_device *spi)
 	ret = mipi_dbi_spi_init(spi, &ws->dbi, NULL);
 	if (ret)
 		return dev_err_probe(dev, ret, "MIPI DBI init failed\n");
-	ws->dbi.read_commands = ws2401_dbi_read_commands;
+
+	mipi_dbi_add_read_cmds(&ws->dbi, ws2401_dbi_read_commands,
+				ARRAY_SIZE(ws2401_dbi_read_commands));
 
 	ws2401_power_on(ws);
 	ws2401_read_mtp_id(ws);

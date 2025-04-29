@@ -14,7 +14,6 @@ static const u8 s6e63m0_dbi_read_commands[] = {
 	MCS_READ_ID1,
 	MCS_READ_ID2,
 	MCS_READ_ID3,
-	0, /* sentinel */
 };
 
 static int s6e63m0_spi_dcs_read(struct device *dev, void *trsp,
@@ -55,8 +54,10 @@ static int s6e63m0_spi_probe(struct spi_device *spi)
 	ret = mipi_dbi_spi_init(spi, dbi, NULL);
 	if (ret)
 		return dev_err_probe(dev, ret, "MIPI DBI init failed\n");
+
 	/* Register our custom MCS read commands */
-	dbi->read_commands = s6e63m0_dbi_read_commands;
+	mipi_dbi_add_read_cmds(dbi, s6e63m0_dbi_read_commands, 
+				ARRAY_SIZE(s6e63m0_dbi_read_commands));
 
 	return s6e63m0_probe(dev, dbi, s6e63m0_spi_dcs_read,
 			     s6e63m0_spi_dcs_write, false);
