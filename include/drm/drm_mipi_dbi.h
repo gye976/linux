@@ -34,10 +34,9 @@ struct mipi_dbi {
 	int (*command)(struct mipi_dbi *dbi, u8 *cmd, u8 *param, size_t num);
 
 	/**
-	 * @read_commands: Array of read commands terminated by a zero entry.
-	 *                 Reading is disabled if this is NULL.
+	 * @write_only: Reading is disabled if this is true.
 	 */
-	const u8 *read_commands;
+	bool write_only;
 
 	/**
 	 * @swap_bytes: Swap bytes in buffer before transfer
@@ -160,6 +159,11 @@ struct mipi_dbi_dev {
 static inline struct mipi_dbi_dev *drm_to_mipi_dbi_dev(struct drm_device *drm)
 {
 	return container_of(drm, struct mipi_dbi_dev, drm);
+}
+
+static inline void mipi_dbi_set_write_only(struct mipi_dbi *dbi)
+{
+	dbi->write_only = true;
 }
 
 int mipi_dbi_add_read_cmds(struct mipi_dbi *dbi, const u8 read_cmds[], 

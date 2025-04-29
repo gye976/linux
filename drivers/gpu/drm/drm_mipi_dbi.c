@@ -151,7 +151,7 @@ EXPORT_SYMBOL(mipi_dbi_add_read_cmds);
  */
 int mipi_dbi_command_read(struct mipi_dbi *dbi, u8 cmd, u8 *val)
 {
-	if (!dbi->read_commands)
+	if (dbi->write_only)
 		return -EACCES;
 
 	if (!mipi_dbi_command_is_read(dbi, cmd))
@@ -1521,7 +1521,7 @@ void mipi_dbi_debugfs_init(struct drm_minor *minor)
 	struct mipi_dbi_dev *dbidev = drm_to_mipi_dbi_dev(minor->dev);
 	umode_t mode = S_IFREG | 0200;
 
-	if (dbidev->dbi.read_commands)
+	if (!dbidev->dbi.write_only)
 		mode |= 0444;
 	debugfs_create_file("command", mode, minor->debugfs_root, dbidev,
 			    &mipi_dbi_debugfs_command_fops);
