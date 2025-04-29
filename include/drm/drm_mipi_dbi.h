@@ -162,6 +162,9 @@ static inline struct mipi_dbi_dev *drm_to_mipi_dbi_dev(struct drm_device *drm)
 	return container_of(drm, struct mipi_dbi_dev, drm);
 }
 
+int mipi_dbi_add_read_cmds(struct mipi_dbi *dbi, const u8 read_cmds[], 
+				size_t num);
+
 int mipi_dbi_spi_init(struct spi_device *spi, struct mipi_dbi *dbi,
 		      struct gpio_desc *dc);
 int mipi_dbi_dev_init_with_formats(struct mipi_dbi_dev *dbidev,

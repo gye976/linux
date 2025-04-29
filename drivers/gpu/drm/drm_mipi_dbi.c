@@ -9,6 +9,7 @@
 #include <linux/debugfs.h>
 #include <linux/delay.h>
 #include <linux/gpio/consumer.h>
+#include <linux/hashtable.h>
 #include <linux/module.h>
 #include <linux/regulator/consumer.h>
 #include <linux/spi/spi.h>
@@ -77,6 +78,13 @@
 		DRM_DEBUG_DRIVER("cmd=%02x, len=%zu\n", cmd, len); \
 })
 
+struct read_cmd_node {
+	u8 cmd;
+	struct hlist_node node;
+};
+
+DEFINE_READ_MOSTLY_HASHTABLE(read_cmd_htable, 7);
+
 static const u8 mipi_dbi_dcs_read_commands[] = {
 	MIPI_DCS_GET_DISPLAY_ID,
 	MIPI_DCS_GET_RED_CHANNEL,
@@ -98,25 +106,37 @@ static const u8 mipi_dbi_dcs_read_commands[] = {
 	MIPI_DCS_GET_CABC_MIN_BRIGHTNESS,
 	MIPI_DCS_READ_DDB_START,
 	MIPI_DCS_READ_DDB_CONTINUE,
-	0, /* sentinel */
 };
 
 static bool mipi_dbi_command_is_read(struct mipi_dbi *dbi, u8 cmd)
 {
-	unsigned int i;
+	struct read_cmd_node *hnode;
 
-	if (!dbi->read_commands)
-		return false;
-
-	for (i = 0; i < 0xff; i++) {
-		if (!dbi->read_commands[i])
-			return false;
-		if (cmd == dbi->read_commands[i])
+	hash_for_each_possible(read_cmd_htable, hnode, node, cmd)
+		if (hnode->cmd == cmd)
 			return true;
-	}
 
 	return false;
 }
+
+int mipi_dbi_add_read_cmds(struct mipi_dbi *dbi, const u8 read_cmds[],
+			   size_t num)
+{
+	struct read_cmd_node *nodes;
+
+	nodes = kmalloc_array(num, sizeof(*nodes), GFP_KERNEL);
+	if (!nodes)
+		return -ENOMEM;
+
+	for (size_t i = 0; i < num; i++) {
+		nodes[i].cmd = read_cmds[i];
+
+		hash_add(read_cmd_htable, &nodes[i].node, read_cmds[i]);
+	}
+
+	return 0;
+}
+EXPORT_SYMBOL(mipi_dbi_add_read_cmds);
 
 /**
  * mipi_dbi_command_read - MIPI DCS read command
@@ -1279,8 +1299,13 @@ int mipi_dbi_spi_init(struct spi_device *spi, struct mipi_dbi *dbi,
 	}
 
 	dbi->spi = spi;
-	dbi->read_commands = mipi_dbi_dcs_read_commands;
 	dbi->write_memory_bpw = 16;
+
+	/* Register default read commands */
+	ret = mipi_dbi_add_read_cmds(dbi, mipi_dbi_dcs_read_commands,
+				     ARRAY_SIZE(mipi_dbi_dcs_read_commands));
+	if (ret)
+		return ret;
 
 	if (dc) {
 		dbi->command = mipi_dbi_typec3_command;
