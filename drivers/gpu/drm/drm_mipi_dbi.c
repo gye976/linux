@@ -1494,10 +1494,10 @@ static const struct file_operations mipi_dbi_debugfs_command_fops = {
 void mipi_dbi_debugfs_init(struct drm_minor *minor)
 {
 	struct mipi_dbi_dev *dbidev = drm_to_mipi_dbi_dev(minor->dev);
-	umode_t mode = S_IFREG | S_IWUSR;
+	umode_t mode = S_IFREG | 0200;
 
 	if (dbidev->dbi.read_commands)
-		mode |= S_IRUGO;
+		mode |= 0444;
 	debugfs_create_file("command", mode, minor->debugfs_root, dbidev,
 			    &mipi_dbi_debugfs_command_fops);
 }
